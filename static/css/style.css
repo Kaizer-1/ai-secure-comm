@@ -1,0 +1,118 @@
+/* style.css — minimal extras Tailwind utility classes can't cover. */
+
+/* Pulse the sync bar while it's visible so motion signals "in progress". */
+.sync-pulse {
+  animation: sync-pulse 1.4s ease-in-out infinite;
+}
+@keyframes sync-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Wire-view & chat-log scrollbars: thinner, dark, matches the panel. */
+.wire-scroll::-webkit-scrollbar { width: 8px; }
+.wire-scroll::-webkit-scrollbar-track { background: #0f172a; }
+.wire-scroll::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+.wire-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+.wire-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0f172a;
+}
+
+/* Long hex strings should wrap aggressively in the wire panel. */
+.break-all {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+/* ── Phase 4C: IDS gauge ────────────────────────────────────────────── */
+
+/* Smooth width and colour transitions for the gauge fill bar. */
+.ids-gauge-fill {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.6s ease;
+}
+
+/* Subtle pulse on the fill bar while an alert is active.
+   Kept gentle (0.75–1.0 opacity) so it draws attention without
+   flashing aggressively during a viva. */
+.ids-gauge-pulse {
+  animation: ids-gauge-pulse 1.5s ease-in-out infinite;
+}
+@keyframes ids-gauge-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.75; }
+}
+
+/* ── Phase 4C: Threat alert banner ──────────────────────────────────── */
+
+/* Slide down from above + fade in when the banner appears. */
+.threat-banner-enter {
+  animation: threat-banner-in 0.3s ease forwards;
+}
+@keyframes threat-banner-in {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+/* Slide back up + fade out when the banner is dismissed. */
+.threat-banner-exit {
+  animation: threat-banner-out 0.3s ease forwards;
+}
+@keyframes threat-banner-out {
+  from { transform: translateY(0);     opacity: 1; }
+  to   { transform: translateY(-100%); opacity: 0; }
+}
+
+/* Border glow for the active alert banner — colour overridden in JS
+   (amber for MITM, rose for Replay). */
+.threat-banner-glow {
+  box-shadow: 0 0 12px 2px currentColor;
+  animation: threat-glow-pulse 1.5s ease-in-out infinite;
+}
+@keyframes threat-glow-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+/* ── Phase 4C: Alert history chips ──────────────────────────────────── */
+
+/* Each chip pops in with a subtle scale animation. */
+.ids-chip {
+  animation: ids-chip-in 0.2s ease forwards;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-family: ui-monospace, monospace;
+  white-space: nowrap;
+  cursor: default;
+  position: relative;
+}
+@keyframes ids-chip-in {
+  from { transform: scale(0.75); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Tooltip shown on hover — pure CSS, no JS needed. */
+.ids-chip[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  font-size: 0.6rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+  z-index: 60;
+  pointer-events: none;
+}

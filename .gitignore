@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Trained model artifacts (regeneratable from training_data.csv via ai/ids_train.py)
+ai/trained_model.pkl
+ai/report/
+
+# Benchmark results (regeneratable via benchmarks/*.py scripts)
+benchmarks/results/
+
+# Generated session logs and uploads
+data/training_logs/
+data/uploads/
+
+# OS / Editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+session.log
+
+# Coverage / test artifacts
+.coverage
+htmlcov/
+.tox/

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Performance Metrics — Secure Communication System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <style>
+    /* Ensure Chart.js canvas elements scale responsively inside fixed-height containers */
+    .chart-container { position: relative; }
+    .no-data-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(15,23,42,0.85);
+      color: #64748b; font-size: 0.75rem; text-align: center; padding: 1rem;
+      border-radius: 0.375rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-mono min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-slate-700 px-4 py-3 flex items-center justify-between flex-none">
+    <div class="flex items-baseline gap-4">
+      <h1 class="text-xl font-bold tracking-wide text-teal-400">Performance Metrics</h1>
+      <span class="text-xs text-slate-500">AI-Enhanced Secure Communication System</span>
+    </div>
+    <div class="flex items-center gap-4 text-xs">
+      <span id="last-updated" class="text-slate-500"></span>
+      <a href="/" class="text-slate-400 hover:text-slate-200 underline underline-offset-2 transition-colors">
+        ← back to chat
+      </a>
+    </div>
+  </header>
+
+  <!-- Main dashboard content -->
+  <main class="flex-1 overflow-y-auto p-4">
+
+    <!-- Benchmark not-run notice — shown when no data exists -->
+    <div id="no-benchmark-notice"
+         class="hidden mb-4 border border-amber-700 bg-amber-950/60 text-amber-300
+                text-xs px-4 py-3 rounded">
+      ⚠ Benchmark results not found.
+      Run the standalone scripts first:<br>
+      <code class="text-amber-200 select-all">cd ai_secure_comm</code><br>
+      <code class="text-amber-200 select-all">python benchmarks/benchmark_key_exchange.py --runs 50</code><br>
+      <code class="text-amber-200 select-all">python benchmarks/benchmark_throughput.py</code>
+    </div>
+
+    <!-- Grid: 2 columns on lg+, single column below -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- §1 Key Exchange Comparison -->
+      <section class="bg-slate-800 border border-slate-700 rounded-lg p-4 flex flex-col gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-slate-200 tracking-wide">
+            §1 — Key-Exchange Setup Time
+          </h2>
+          <p class="text-[10px] text-slate-500 mt-0.5">
+            Mean wall-clock time to establish a 256-bit shared key.
+            TPM timed end-to-end including synchronisation rounds.
+            RSA includes key-pair generation.  DH agreement only (parameter
+            generation is a one-time ~2–4 s cost, shown in the table).
+          </p>
+        </div>
+
+        <div class="chart-container" style="height:240px;">
+          <canvas id="chart-key-exchange"></canvas>
+          <div id="no-key-exchange" class="no-data-overlay hidden">
+            No benchmark data — run<br><code>benchmark_key_exchange.py</code>
+          </div>
+        </div>
+
+        <div id="key-exchange-table" class="hidden">
+          <table class="w-full text-[10px] border-collapse">
+            <thead>
+              <tr class="text-slate-500 border-b border-slate-700">
+                <th class="text-left py-1 pr-2">Scheme</th>
+                <th class="text-right py-1 px-1">Mean ms</th>
+                <th class="text-right py-1 px-1">Median ms</th>
+                <th class="text-right py-1 px-1">Std ms</th>
+                <th class="text-right py-1 px-1">Min ms</th>
+                <th class="text-right py-1 px-1">Max ms</th>
+                <th class="text-right py-1 pl-1">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="key-exchange-tbody" class="text-slate-300"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- §2 AES-GCM Throughput -->
+      <section class="bg-slate-800 border border-slate-700 rounded-lg p-4 flex flex-col gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-slate-200 tracking-wide">
+            §2 — AES-256-GCM Throughput
+          </h2>
+          <p class="text-[10px] text-slate-500 mt-0.5">
+            Per-direction encrypt and decrypt throughput in MB/s across message
+            sizes from 64 B to 4 MB.  X-axis is logarithmic.
+          </p>
+        </div>
+
+        <div class="chart-container" style="height:240px;">
+          <canvas id="chart-throughput"></canvas>
+          <div id="no-throughput" class="no-data-overlay hidden">
+            No benchmark data — run<br><code>benchmark_throughput.py</code>
+          </div>
+        </div>
+
+        <div id="throughput-table" class="hidden">
+          <table class="w-full text-[10px] border-collapse">
+            <thead>
+              <tr class="text-slate-500 border-b border-slate-700">
+                <th class="text-left py-1 pr-2">Size</th>
+                <th class="text-right py-1 px-1">Enc MB/s</th>
+                <th class="text-right py-1 px-1">Dec MB/s</th>
+                <th class="text-right py-1 px-1">Enc ms</th>
+                <th class="text-right py-1 pl-1">Dec ms</th>
+              </tr>
+            </thead>
+            <tbody id="throughput-tbody" class="text-slate-300"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- §3 IDS Detection Latency -->
+      <section class="bg-slate-800 border border-slate-700 rounded-lg p-4 flex flex-col gap-3"
+               id="ids-latency-section">
+        <div>
+          <h2 class="text-sm font-bold text-slate-200 tracking-wide">
+            §3 — IDS Detection Latency
+          </h2>
+          <p class="text-[10px] text-slate-500 mt-0.5">
+            Wall-clock time from demo-panel button-click to first IDS alert.
+            Data accumulates during the running session — launch MITM or Replay
+            from the main chat page, then return here.  Auto-refreshes every 5 s.
+          </p>
+        </div>
+
+        <div class="chart-container" style="height:200px;">
+          <canvas id="chart-latency"></canvas>
+          <div id="no-latency" class="no-data-overlay hidden">
+            No latency data yet.<br>
+            Launch an attack from the chat page, let the alert fire, then
+            return here.
+          </div>
+        </div>
+
+        <div id="latency-stats" class="hidden grid grid-cols-4 gap-2 text-center">
+          <div class="bg-slate-900/60 rounded p-2">
+            <div class="text-[10px] text-slate-500">Mean</div>
+            <div id="lat-mean" class="text-sm font-bold text-teal-400">—</div>
+          </div>
+          <div class="bg-slate-900/60 rounded p-2">
+            <div class="text-[10px] text-slate-500">Median</div>
+            <div id="lat-median" class="text-sm font-bold text-teal-400">—</div>
+          </div>
+          <div class="bg-slate-900/60 rounded p-2">
+            <div class="text-[10px] text-slate-500">Min</div>
+            <div id="lat-min" class="text-sm font-bold text-emerald-400">—</div>
+          </div>
+          <div class="bg-slate-900/60 rounded p-2">
+            <div class="text-[10px] text-slate-500">Max</div>
+            <div id="lat-max" class="text-sm font-bold text-rose-400">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- §4 System Info & Session Stats -->
+      <section class="bg-slate-800 border border-slate-700 rounded-lg p-4 flex flex-col gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-slate-200 tracking-wide">
+            §4 — System Info &amp; Session Stats
+          </h2>
+          <p class="text-[10px] text-slate-500 mt-0.5">
+            Benchmark metadata and current-session encryption counters.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Benchmark metadata -->
+          <div>
+            <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">
+              Benchmark metadata
+            </div>
+            <dl id="benchmark-meta" class="text-[10px] space-y-0.5"></dl>
+          </div>
+
+          <!-- Session stats -->
+          <div>
+            <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">
+              This session (<span id="session-role" class="text-slate-400">—</span>)
+            </div>
+            <dl id="session-stats" class="text-[10px] space-y-0.5"></dl>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /grid -->
+  </main>
+
+  <script>
+    window.METRICS_ROLE = "{{ role }}";
+  </script>
+  <script src="{{ url_for('static', filename='js/metrics.js') }}?v=2026-05-16-phase5a"></script>
+</body>
+</html>

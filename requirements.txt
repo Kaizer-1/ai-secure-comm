@@ -1,0 +1,16 @@
+numpy>=1.24,<2.0
+cryptography>=41.0
+
+# Phase 2 — web UI and SocketIO transport.
+# `async_mode="threading"` is pinned in config.py, so we deliberately do
+# NOT depend on eventlet or gevent.
+flask>=3.0,<4.0
+flask-socketio>=5.3,<6.0
+
+# Phase 4A — offline IDS training pipeline (`ai/ids_train.py`,
+# `ai/ids_report.py`).  Pure offline use; the live PeerLink in
+# Phase 4B will only need scikit-learn + joblib at runtime.
+pandas>=2.1,<3.0
+scikit-learn>=1.4,<2.0
+joblib>=1.3
+matplotlib>=3.8,<4.0
